@@ -2,7 +2,7 @@ import React from 'react'
 import { Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, TextField, styled } from '@mui/material'
 import { useForm } from 'react-hook-form'
 import { IEventForm, IEventFormProps } from '../types/events'
-import { useEventMutation } from './eventFormMutation'
+import { useEventFormMutation } from '../hooks/useEventFormMutation'
 
 const StyledForm = styled('form')(({ theme }) => ({
   display: 'flex',
@@ -19,7 +19,9 @@ const StyledTextField = styled(TextField)({
   marginBottom: '20px',
 })
 
-const EventFormModal: React.FC<IEventFormProps> = ({ isOpen, onClose, eventTypes, formType }) => {
+const EventFormModal: React.FC<IEventFormProps> = ({ isOpen, onClose, eventTypes, formType, currentEventValues }) => {
+  const { _id, ...currentValues } = currentEventValues || {}
+
   const {
     register,
     handleSubmit,
@@ -27,21 +29,23 @@ const EventFormModal: React.FC<IEventFormProps> = ({ isOpen, onClose, eventTypes
     setValue,
     formState: { errors },
   } = useForm<IEventForm>({
-    defaultValues: {
-      name: '',
-      description: '',
-      eventDate: new Date(),
-      eventType: '',
-      activityStatus: false,
-    },
+    defaultValues:
+      formType === 'Update'
+        ? currentValues
+        : {
+            name: '',
+            description: '',
+            eventDate: new Date(),
+            eventType: '',
+            activityStatus: false,
+          },
     mode: 'onChange',
   })
 
-  const mutation = useEventMutation(formType, onClose, reset)
+  const mutation = useEventFormMutation({ formType, onClose, reset, eventId: _id })
 
   const onSubmit = async (values: IEventForm) => {
     mutation.mutate(values)
-    console.log(values)
   }
 
   return (
@@ -111,7 +115,7 @@ const EventFormModal: React.FC<IEventFormProps> = ({ isOpen, onClose, eventTypes
               <Checkbox
                 {...register('activityStatus')}
                 onChange={(_, checked) => {
-                  setValue('activityStatus', checked, { shouldTouch: true })
+                  setValue('activityStatus', checked)
                 }}
               />
             }
@@ -122,7 +126,7 @@ const EventFormModal: React.FC<IEventFormProps> = ({ isOpen, onClose, eventTypes
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
         <Button onClick={handleSubmit(onSubmit)} variant="contained">
-          Create
+          {formType === 'Create' ? 'Create' : 'Update'}
         </Button>
       </DialogActions>
     </Dialog>

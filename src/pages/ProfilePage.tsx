@@ -4,6 +4,7 @@ import { fetchUserAPI } from '../features/authentication/api/authAPI'
 import { AuthForm, UserInfo } from '../features/authentication/components'
 import { Box, Button, styled } from '@mui/material'
 import { Preloader } from '../shared'
+import { IUserData } from '../features/authentication/types/auth'
 
 const Wrapper = styled(Box)({
   margin: '30px auto',
@@ -21,7 +22,7 @@ const StyledButton = styled(Button)({
 const ProfilePage: React.FC = () => {
   const [edit, setEdit] = useState(false)
 
-  const { data, isLoading, isError } = useQuery(['user'], () => fetchUserAPI(), { keepPreviousData: true })
+  const { data, isLoading, isError } = useQuery<IUserData>(['user'], () => fetchUserAPI(), { keepPreviousData: true })
 
   if (isLoading) {
     return <Preloader />

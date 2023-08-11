@@ -5,6 +5,7 @@ import { IEventDataResponse } from '../types/events'
 const Container = styled(Card)({
   width: '300px',
   margin: '20px',
+  position: 'relative',
 })
 
 const EventCard: React.FC<IEventDataResponse> = ({ name, activityStatus, description, eventDate, eventType, createdAt, updatedAt }) => {

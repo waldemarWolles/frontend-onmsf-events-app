@@ -1,13 +1,14 @@
 import React from 'react'
 import { Box, Button, Card, CardContent, CircularProgress, Grid, Typography, styled } from '@mui/material'
 import { IEventDataResponse } from '../types/events'
-import { useQuery } from '@tanstack/react-query'
-import { fetchAllEventsAPI } from '../api/eventsAPI'
-import { Link } from 'react-router-dom'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { deleteEventAPI, fetchAllEventsAPI } from '../api/eventsAPI'
+import { Link, NavigateFunction, useNavigate } from 'react-router-dom'
 import EventCard from './EventCard'
 import { Preloader } from '../../../shared'
+import { useDeleteEventMutation } from '../hooks/useEventDeleteMutation'
 
-const Continer = styled(Grid)({
+const Container = styled(Grid)({
   height: '100vh',
 })
 
@@ -24,9 +25,15 @@ const StyledGrid = styled(Grid)({
   overflow: 'auto',
 })
 
-const StyledLink = styled(Link)({
-  textDecoration: 'none',
-  color: 'inherit',
+const StyledButton = styled(Button)({
+  marginBottom: '16px',
+  maxWidth: '300px',
+})
+
+const Buttons = styled(Box)({
+  dispaly: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
 })
 
 interface IEventsListProps {
@@ -34,31 +41,42 @@ interface IEventsListProps {
 }
 
 const EventsList: React.FC<IEventsListProps> = ({ eventType }) => {
-  const { data: events, isLoading, isError, error } = useQuery<IEventDataResponse[], Error>(['events'], fetchAllEventsAPI)
+  const navigate: NavigateFunction = useNavigate()
+  const { data: events, isLoading, isError } = useQuery<IEventDataResponse[], Error>(['events'], fetchAllEventsAPI)
 
-  console.log({ events, isLoading, isError, error })
+  const deleteEventMutation = useDeleteEventMutation()
+
+  const onDeleteEvent = (eventId: string, eventName: string) => {
+    if (window.confirm(`Are you sure that you want to delete this product: ${eventName} ?`)) {
+      deleteEventMutation.mutate(eventId)
+    }
+  }
+
+  const filteredEvents = eventType === 'all' ? events : events?.filter((event: IEventDataResponse) => event.eventType === eventType)
 
   if (isLoading) {
     return <Preloader />
   }
 
-  const filteredEvents = eventType === 'all' ? events : events?.filter((event: IEventDataResponse) => event.eventType === eventType)
+  if (isError) {
+    return <div>Error </div>
+  }
 
   return (
-    <Continer>
+    <Container>
       <StyledGrid container>
         {filteredEvents?.map((event: IEventDataResponse) => (
           <EventCardWrapper item xs={12} sm={6} md={4} lg={3} key={event._id}>
-            <StyledLink to={`/events/${event._id}`}>
-              <EventCard key={event._id} {...event} />
-            </StyledLink>
-            {/* <StyledIconButton onClick={() => onProductDeleteClick(product._id, product.name)}>
-              <Delete />
-            </StyledIconButton> */}
+            <EventCard key={event._id} {...event} />
+
+            <Buttons>
+              <StyledButton onClick={() => navigate(`/events/${event._id}`)}>Edit</StyledButton>
+              <StyledButton onClick={() => onDeleteEvent(event._id, event.name)}>Delete</StyledButton>
+            </Buttons>
           </EventCardWrapper>
         ))}
       </StyledGrid>
-    </Continer>
+    </Container>
   )
 }
 

@@ -28,7 +28,7 @@ const CreateEventButton = styled(Button)({
 })
 
 const HomePage: React.FC = () => {
-  const { data: eventTypes, isLoading } = useQuery<IEventTypeDataResponse[], Error>(['event-types'], fetchAllEventTypesAPI)
+  const { data: eventTypes, isLoading } = useQuery<IEventTypeDataResponse[]>(['event-types'], fetchAllEventTypesAPI)
 
   const [activeEventTypeTab, setActiveEventTypeTab] = useState<string>('all')
   const [isCreateEventTypeModalOpen, setIsCreateEventTypeModalOpen] = useState<boolean>(false)
